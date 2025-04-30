@@ -12,24 +12,31 @@ async function requestAccount() {
 }
 
 async function createEvent(name, description, imageUrl, date, totalTickets, ticketPrice) {
-  // If MetaMask exists
   if (typeof window.ethereum !== "undefined") {
     await requestAccount();
 
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
-
     const contract = new ethers.Contract(EVENT_TICKETING_ADDRESS, EventTicketing.abi, signer);
     const formattedTicketPrice = ethers.utils.parseEther(`${ticketPrice}`);
 
     try {
       const transaction = await contract.createEvent(name, description, imageUrl, date, totalTickets, formattedTicketPrice);
-      await transaction.wait();
+      console.log('Transaction Sent:', transaction);
+
+      // Wait for the transaction to be mined
+      const receipt = await transaction.wait();  // Ensures the transaction is confirmed
+      console.log('Transaction Successful:', receipt);
+
+      // Once confirmed, send transaction hash to backend
+      return transaction.transactionHash;  // Return transaction hash for backend processing
     } catch (error) {
-      console.log("Error: ", error);
+      console.error("Error during transaction:", error);
+      throw error;
     }
   }
 }
+
 
 async function purchaseTicket(eventId, ticketPrice) {
   // If MetaMask exists
