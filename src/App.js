@@ -1,5 +1,6 @@
 import "./App.css";
 import React from 'react';
+import Events from './components/Events';
 
 // Import ABI implementation
 import { createEvent, purchaseTicket, enterEvent, closeEvent, withdrawFunds, updateEventDetails, getAllEvents } from './services/EventTicketingService';
@@ -49,7 +50,8 @@ function App() {
    <Router>
      <div className="App">
      {/* {alert && <Alert message={alert.message} type={alert.type} />} */}
-
+     <h1>Welcome to the Event Tracker</h1>
+     <Events /> 
       {/* <Navbar /> */}
       {/* <div className=""> */}
         {/* DESCRIPTION  */}
@@ -59,25 +61,25 @@ function App() {
         </div>
         {/* BUTTONS - Fetch and Set */}
         <div className="custom-buttons">
-          <button onClick={performGetAllEvents} style={{ backgroundColor: "grey" }}>
+          <button onClick={performGetAllEvents} style={{ backgroundColor: "purple" }}>
             Get All Events
           </button>
-          <button onClick={performCreateEvent} style={{ backgroundColor: "grey" }}>
+          <button onClick={performCreateEvent} style={{ backgroundColor: "purple" }}>
             Create Event
           </button>
-          <button onClick={performPurchaseTicket} style={{ backgroundColor: "grey" }}>
+          <button onClick={performPurchaseTicket} style={{ backgroundColor: "purple" }}>
             Purchase Ticket
           </button>
-          <button onClick={performEnterEvent} style={{ backgroundColor: "grey" }}>
+          <button onClick={performEnterEvent} style={{ backgroundColor: "purple" }}>
             Enter Event
           </button>
-          <button onClick={performCloseEvent} style={{ backgroundColor: "grey" }}>
+          <button onClick={performCloseEvent} style={{ backgroundColor: "purple" }}>
             Close Event
           </button>
-          <button onClick={performWithdrawFunds} style={{ backgroundColor: "grey" }}>
+          <button onClick={performWithdrawFunds} style={{ backgroundColor: "purple" }}>
             Withdraw Funds
           </button>  
-          <button onClick={performUpdateEventDetails} style={{ backgroundColor: "grey" }}>
+          <button onClick={performUpdateEventDetails} style={{ backgroundColor: "purple" }}>
             Edit Event
           </button>
         </div>
@@ -87,5 +89,7 @@ function App() {
    </Router>
   );
 }
+
+
 
 export default App;

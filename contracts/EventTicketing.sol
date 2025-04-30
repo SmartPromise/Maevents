@@ -4,18 +4,19 @@ pragma solidity ^0.8.0;
 contract EventTicketing {
     uint256 public eventId;
     uint256 public ticketId;
+    uint256 public ticketInfoId;
 
     struct Event {
         string name;
-        string description; // Event description
-        string imageUrl;    // Event image URL
+        string description;
+        string imageUrl;
         uint256 date;
         bool isOpen;
         uint256 totalTickets;
         uint256 ticketsSold;
         address owner;
-        uint256 ticketPrice; // Price of each ticket in wei
-        uint256 balance;     // Balance specific to this event
+        uint256 ticketPrice;
+        uint256 balance;
     }
 
     struct Ticket {
@@ -24,8 +25,21 @@ contract EventTicketing {
         bool hasEntered;
     }
 
+    struct TicketInfo {
+        uint256 tokenId;
+        uint256 totalTickets;
+        uint256 ticketsSold;
+        uint256 ticketPrice;
+        uint256 ticketStartDate;
+        uint256 ticketEndDate;
+        address creator;
+        bool ticketSold;
+        string category;
+    }
+
     mapping(uint256 => Event) public events;
     mapping(uint256 => Ticket) public tickets;
+    mapping(uint256 => TicketInfo) public ticketInfos;
 
     event EventCreated(uint256 eventId, string name, string description, string imageUrl, uint256 date, uint256 totalTickets, uint256 ticketPrice);
     event TicketPurchased(uint256 ticketId, uint256 eventId, address buyer, uint256 price);
@@ -34,9 +48,17 @@ contract EventTicketing {
     constructor() {
         eventId = 1;
         ticketId = 1;
+        ticketInfoId = 1;
     }
 
-    function createEvent(string memory _name, string memory _description, string memory _imageUrl, uint256 _date, uint256 _totalTickets, uint256 _ticketPrice) external {
+    function createEvent(
+        string memory _name,
+        string memory _description,
+        string memory _imageUrl,
+        uint256 _date,
+        uint256 _totalTickets,
+        uint256 _ticketPrice
+    ) external {
         require(_date > block.timestamp, "Event must be in the future");
         require(_totalTickets > 0, "Total tickets must be greater than 0");
         require(_ticketPrice > 0, "Ticket price must be greater than 0");
@@ -54,11 +76,32 @@ contract EventTicketing {
 
         tickets[ticketId] = Ticket(_eventId, msg.sender, false);
         eventInfo.ticketsSold++;
-        eventInfo.balance += msg.value; // Update the event's balance
+        eventInfo.balance += msg.value;
         emit TicketPurchased(ticketId, _eventId, msg.sender, msg.value);
-        uint256 purchasedTicketId = ticketId;
         ticketId++;
-        return purchasedTicketId;
+        return ticketId - 1;
+    }
+
+    function createTicket(
+        uint256 _totalTickets,
+        uint256 _ticketPrice,
+        uint256 _ticketStartDate,
+        uint256 _ticketEndDate,
+        string memory _category
+    ) public payable {
+        ticketInfos[ticketInfoId] = TicketInfo(
+            ticketInfoId,
+            _totalTickets,
+            0,
+            _ticketPrice,
+            _ticketStartDate,
+            _ticketEndDate,
+            msg.sender,
+            false,
+            _category
+        );
+
+        ticketInfoId++;
     }
 
     function enterEvent(uint256 _ticketId) external {
@@ -74,21 +117,29 @@ contract EventTicketing {
         events[_eventId].isOpen = false;
     }
 
-    // Withdraw event-specific balance (earned from ticket sales)
     function withdrawFunds(uint256 _eventId) external {
         Event storage eventInfo = events[_eventId];
         require(msg.sender == eventInfo.owner, "Only the event owner can withdraw funds");
         require(!eventInfo.isOpen, "Event must be closed before withdrawing funds");
+
         uint256 balanceToWithdraw = eventInfo.balance;
-        eventInfo.balance = 0; // Reset the event's balance
+        eventInfo.balance = 0;
         payable(msg.sender).transfer(balanceToWithdraw);
     }
 
-    // Allow the event owner to update event details
-    function updateEventDetails(uint256 _eventId, string memory _name, string memory _description, string memory _imageUrl, uint256 _date, uint256 _totalTickets, uint256 _ticketPrice) external {
+    function updateEventDetails(
+        uint256 _eventId,
+        string memory _name,
+        string memory _description,
+        string memory _imageUrl,
+        uint256 _date,
+        uint256 _totalTickets,
+        uint256 _ticketPrice
+    ) external {
         Event storage eventInfo = events[_eventId];
         require(eventInfo.isOpen, "Event is not open for updates");
         require(msg.sender == eventInfo.owner, "Only the event owner can update event details");
+
         eventInfo.name = _name;
         eventInfo.description = _description;
         eventInfo.imageUrl = _imageUrl;
@@ -97,7 +148,6 @@ contract EventTicketing {
         eventInfo.ticketPrice = _ticketPrice;
     }
 
-    // Get all events
     function getAllEvents() external view returns (Event[] memory) {
         Event[] memory allEvents = new Event[](eventId - 1);
         for (uint256 i = 1; i < eventId; i++) {
@@ -106,3 +156,4 @@ contract EventTicketing {
         return allEvents;
     }
 }
+
